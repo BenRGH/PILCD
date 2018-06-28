@@ -42,27 +42,24 @@ def getHosts():
         hostsfile = open('onlinehosts.txt','r')
         hosts = hostsfile.read()
         hostsfile.close()
-	
 	return "#" + hosts + " "
 	
 def getPing():
 	#pings google and returns ms
         try:
             rawping = pyping.ping('8.8.8.8') #REQUIRES ROOT, 99 is for timeout
-            pingms = rawping.avg_rtt[:2] + "ms "
+            return rawping.avg_rtt[:2] + "ms "
         except:
-            pingms = "?? "
-	
-	return pingms
+            return "?? "
     
 def getCPUPer():
-    #get cpu percent and add a 0 if its a single digit
-    cpupercent = str(int(psutil.cpu_percent()))
-    
-    if len(cpupercent) == 1:
-            return "0" + cpupercent + "% "
-    else:
-            return cpupercent + "% "
+        #get cpu percent and add a 0 if its a single digit
+        cpupercent = str(int(psutil.cpu_percent()))
+        
+        if len(cpupercent) == 1:
+                return "0" + cpupercent + "% "
+        else:
+                return cpupercent + "% "
     
     
 
