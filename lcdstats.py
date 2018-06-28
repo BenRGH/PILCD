@@ -1,13 +1,10 @@
 #!/usr/bin/python
 import time
-
 import Adafruit_CharLCD as LCD
-
 from datetime import datetime
-
 import psutil
-
 import pyping
+
 
 # Raspberry Pi pin configuration:
 lcd_rs        = 25 
@@ -25,9 +22,10 @@ lcd_rows    = 2
 # Initialize the LCD using the pins above.
 lcd = LCD.Adafruit_CharLCD(lcd_rs, lcd_en, lcd_d4, lcd_d5, lcd_d6, lcd_d7,
                            lcd_columns, lcd_rows, lcd_backlight)
-						   
-						   
-#MY CODE
+				
+				
+# Define chars for days of the week
+# FIX THIS
 
 lcd.create_char(0,[10001,11011,10101,10001,11111,10001,10001,11111]) #monday
 lcd.create_char(1,[11111,100,100,100,10001,10001,10001,11111]) #tuesday
@@ -37,22 +35,36 @@ lcd.create_char(4,[11111,10000,11100,10000,10110,11000,10000,10000]) #friday
 lcd.create_char(5,[11111,11000,111,11111,1110,10001,10001,1111]) #saturday
 lcd.create_char(6,[11111,11000,111,11111,10001,10001,10001,11111]) #sunday
 
-def checkonlinehosts():
-	#this uses nmap to scan the lan for online hosts, then filters the text
-	#for just the number
-        raw = str(nmap("-sP", "-PA21,22,25,3389", "192.168.1.1/24"))
-        splitraw = raw.split(" ")
-        rawhosts = splitraw[115] #NEEDS REWORK IF STRING CHANGES SIZE
-        hosts = rawhosts[1] #this is a string btw
+def getHosts():
+	#Finding the number of connected hosts is done with an external script
+        #Results are pasted into a txt file
+        
+        hostsfile = open('onlinehosts.txt','r')
+        hosts = hostsfile.read()
+        hostsfile.close()
 	
-	return hosts
+	return "#" + hosts + " "
 	
-def checkping():
+def getPing():
 	#pings google and returns ms
-        rawping = pyping.ping('8.8.8.8', 99) #REQUIRES ROOT, 99 is for timeout
-        pingms = rawping.avg_rtt[:2] + "ms"
+        try:
+            rawping = pyping.ping('8.8.8.8') #REQUIRES ROOT, 99 is for timeout
+            pingms = rawping.avg_rtt[:2] + "ms "
+        except:
+            pingms = "?? "
 	
 	return pingms
+    
+def getCPUPer():
+    #get cpu percent and add a 0 if its a single digit
+    cpupercent = str(int(psutil.cpu_percent()))
+    
+    if len(cpupercent) == 1:
+            return "0" + cpupercent + "% "
+    else:
+            return cpupercent + "% "
+    
+    
 
 while True:
 	d = datetime.today()
@@ -74,20 +86,11 @@ while True:
 		dow = ' \x06 '
 	
 	#Row 1
-	row1 = str(d.time())[:5] + dow + date + "\n"
+	row1 = str(d.time())[:5] + " " + date + "\n"
 
-
-        #get cpu percent and add a 0 if its a single digit
-	cpupercent = str(int(psutil.cpu_percent()))
-	
-	if len(cpupercent) == 1:
-		cpu_val = "0" + cpupercent + "% "
-	else:
-		cpu_val = cpupercent + "% "
-	
 	
 	#Row 2
-	row2 = cpu_val + checkping()
+	row2 = getCPUPer() + getPing() + getHosts()
 	
 	lcd.clear()
 	lcd.home()
